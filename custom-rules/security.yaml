@@ -21,9 +21,7 @@ rules:
 
   # Hardcoded credentials
   - id: hardcoded-password
-    patterns:
-      - pattern-regex: '(password|passwd|pwd)\s*=\s*["\'][^"\']+["\']'
-      - pattern-not-regex: '(password|passwd|pwd)\s*=\s*["\'](|<|>|\$|%|{)["\']'
+    pattern-regex: "(password|passwd|pwd)\\s*=\\s*[\"'][^\"']+[\"']"
     message: "Potential hardcoded password detected. Use environment variables or secure vaults instead"
     languages: [python, javascript, typescript, java, go]
     severity: WARNING
@@ -32,7 +30,7 @@ rules:
       cwe: "CWE-798: Use of Hard-coded Credentials"
 
   - id: hardcoded-api-key
-    pattern-regex: '(api[_-]?key|apikey|api[_-]?secret)\s*=\s*["\'][a-zA-Z0-9]{20,}["\']'
+    pattern-regex: "(api[_-]?key|apikey|api[_-]?secret)\\s*=\\s*[\"'][a-zA-Z0-9]{20,}[\"']"
     message: "Potential hardcoded API key detected"
     languages: [python, javascript, typescript, java, go]
     severity: ERROR
