@@ -1,0 +1,88 @@
+rules:
+  # Dangerous function usage
+  - id: dangerous-eval-usage
+    pattern: eval(...)
+    message: "Avoid using eval() as it can execute arbitrary code and lead to security vulnerabilities"
+    languages: [javascript, typescript]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: "CWE-95: Improper Neutralization of Directives in Dynamically Evaluated Code"
+      confidence: HIGH
+
+  - id: exec-command-injection
+    pattern: exec(...)
+    message: "Using exec() can lead to command injection vulnerabilities"
+    languages: [python]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: "CWE-78: OS Command Injection"
+
+  # Hardcoded credentials
+  - id: hardcoded-password
+    patterns:
+      - pattern-regex: '(password|passwd|pwd)\s*=\s*["\'][^"\']+["\']'
+      - pattern-not-regex: '(password|passwd|pwd)\s*=\s*["\'](|<|>|\$|%|{)["\']'
+    message: "Potential hardcoded password detected. Use environment variables or secure vaults instead"
+    languages: [python, javascript, typescript, java, go]
+    severity: WARNING
+    metadata:
+      category: security
+      cwe: "CWE-798: Use of Hard-coded Credentials"
+
+  - id: hardcoded-api-key
+    pattern-regex: '(api[_-]?key|apikey|api[_-]?secret)\s*=\s*["\'][a-zA-Z0-9]{20,}["\']'
+    message: "Potential hardcoded API key detected"
+    languages: [python, javascript, typescript, java, go]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: "CWE-798: Use of Hard-coded Credentials"
+
+  # SQL Injection
+  - id: sql-injection-risk
+    pattern: |
+      execute($SQL + ...)
+    message: "Potential SQL injection. Use parameterized queries instead"
+    languages: [python, javascript]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: "CWE-89: SQL Injection"
+
+  # XSS vulnerabilities
+  - id: unsafe-innerhtml
+    pattern: |
+      $EL.innerHTML = $INPUT
+    message: "Using innerHTML with user input can lead to XSS vulnerabilities"
+    languages: [javascript, typescript]
+    severity: WARNING
+    metadata:
+      category: security
+      cwe: "CWE-79: Cross-site Scripting"
+
+  # Weak cryptography
+  - id: weak-crypto-md5
+    pattern-either:
+      - pattern: hashlib.md5(...)
+      - pattern: crypto.createHash("md5")
+    message: "MD5 is cryptographically broken and should not be used for security purposes"
+    languages: [python, javascript]
+    severity: WARNING
+    metadata:
+      category: security
+      cwe: "CWE-327: Use of a Broken or Risky Cryptographic Algorithm"
+
+  # Insecure random
+  - id: insecure-random
+    pattern-either:
+      - pattern: Math.random()
+      - pattern: random.random()
+    message: "Use cryptographically secure random number generator for security-sensitive operations"
+    languages: [javascript, typescript, python]
+    severity: INFO
+    metadata:
+      category: security
+      cwe: "CWE-330: Use of Insufficiently Random Values"
+

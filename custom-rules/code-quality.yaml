@@ -1,0 +1,74 @@
+rules:
+  # Console statements in production
+  - id: no-console-log
+    pattern-either:
+      - pattern: console.log(...)
+      - pattern: console.debug(...)
+      - pattern: console.info(...)
+    message: "Remove console statements before committing to production"
+    languages: [javascript, typescript]
+    severity: WARNING
+    metadata:
+      category: code-quality
+      confidence: HIGH
+
+  - id: no-print-statements
+    pattern: print(...)
+    message: "Remove print statements before committing to production. Use proper logging instead"
+    languages: [python]
+    severity: INFO
+    metadata:
+      category: code-quality
+
+  # TODO comments
+  - id: todo-comment
+    pattern-regex: '(TODO|FIXME|HACK|XXX)'
+    message: "TODO/FIXME comment found. Consider creating a ticket"
+    languages: [javascript, typescript, python, java, go, rust]
+    severity: INFO
+    metadata:
+      category: code-quality
+
+  # Empty catch blocks
+  - id: empty-catch-block
+    pattern: |
+      try {
+        ...
+      } catch (...) {
+      }
+    message: "Empty catch block. At minimum, log the error"
+    languages: [javascript, typescript]
+    severity: WARNING
+    metadata:
+      category: code-quality
+
+  # Commented out code
+  - id: large-commented-code
+    pattern-regex: '//.*\n(//.*\n){5,}'
+    message: "Large block of commented code detected. Remove or document why it's kept"
+    languages: [javascript, typescript, java, go]
+    severity: INFO
+    metadata:
+      category: code-quality
+
+  # Magic numbers
+  - id: magic-numbers
+    pattern-regex: '\b[0-9]{4,}\b'
+    message: "Consider using named constants instead of magic numbers"
+    languages: [javascript, typescript, python, java]
+    severity: INFO
+    metadata:
+      category: code-quality
+
+  # Duplicate code patterns
+  - id: duplicate-string-literals
+    pattern: |
+      const $X = "...";
+      ...
+      const $Y = "...";
+    message: "Consider extracting duplicate string literals to constants"
+    languages: [javascript, typescript]
+    severity: INFO
+    metadata:
+      category: code-quality
+
