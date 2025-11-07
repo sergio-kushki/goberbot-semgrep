@@ -6,6 +6,9 @@ __pycache__/
 
 # Test results
 tests/results-*.json
+tests/results-custom-*.json
+tests/results-native-*.json
+tests/results-all-*.json
 
 # MCP logs
 *.log
