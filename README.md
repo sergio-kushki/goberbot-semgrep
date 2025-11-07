@@ -4,8 +4,16 @@ A proof-of-concept for using Semgrep's official MCP server with custom configura
 
 ## Project Phases
 
-### Phase 1: Local STDIO Setup ✅ (Current)
-Set up and test the existing Semgrep MCP with stdio communication locally.
+### Phase 1: Local STDIO Setup ✅ **COMPLETE**
+Set up and test Semgrep integrations locally.
+
+**Results:**
+- ✅ **Semgrep CLI** - Fully functional with custom rules
+- ✅ **Custom Rules** - 17 vulnerabilities detected in test files
+- ✅ **Remote MCP** - Working at `https://mcp.semgrep.ai/mcp`
+- ❌ **Local MCP** - Deprecated package (no scanning tools)
+
+**Key Finding:** Custom MCP server needed for production use (Phase 3)
 
 ### Phase 2: Dockerization & Remote Deployment 🔄 (Next)
 Containerize and deploy Semgrep MCP for remote access.
@@ -228,14 +236,31 @@ railway up
 
 ---
 
-## Phase 3: Custom Wrapper (Planned)
+## Phase 3: Custom MCP Server (Planned) - **RECOMMENDED PATH**
 
-Future enhancements:
-- Git commit range analysis
-- Team-specific rule management
-- Enhanced reporting and dashboards
-- CI/CD pipeline integration
-- Custom preprocessing logic
+**Why Custom?** After Phase 1 testing, we discovered:
+- ❌ Local `semgrep-mcp` package is deprecated (no scanning tools)
+- ⚠️ Remote server (`mcp.semgrep.ai`) works but has risks:
+  - External dependency (could be shut down)
+  - Privacy concerns (code sent to external server)
+  - No customization possible
+  - Can't use custom rules from `custom-rules/`
+
+**Solution:** Build custom MCP server wrapping Semgrep CLI
+
+**Planned Features:**
+- ✅ Full control over functionality
+- ✅ Local execution (privacy & security)
+- ✅ Custom rule integration (`custom-rules/`)
+- ✅ Git commit range analysis
+- ✅ Team-specific rule management
+- ✅ Enhanced reporting and dashboards
+- ✅ CI/CD pipeline integration
+- ✅ Custom preprocessing logic
+- ✅ Result filtering and aggregation
+- ✅ Performance metrics
+
+**See:** `PHASE3-ARCHITECTURE.md` for detailed design
 
 ---
 
@@ -265,9 +290,25 @@ goberbot-semgrep/
 
 ## Next Steps
 
-1. ✅ Install and test Semgrep MCP locally with STDIO
-2. ⬜ Create custom rules for your use case
-3. ⬜ Test with an MCP client (Claude, Cursor, etc.)
-4. ⬜ Dockerize and deploy to remote server
-5. ⬜ Build custom wrapper for specific workflows
+### Completed (Phase 1)
+1. ✅ Install and test Semgrep CLI locally
+2. ✅ Create custom security & code quality rules
+3. ✅ Test with Cursor IDE (remote MCP server)
+4. ✅ Validate custom rules (17 findings in test files)
+5. ✅ Document learnings and limitations
+
+### Recommended Path Forward
+6. **⭐ Build Custom MCP Server (Phase 3)** - PRIORITY
+   - Wrap Semgrep CLI in custom MCP implementation
+   - Full control, privacy, and custom functionality
+   - See `PHASE3-ARCHITECTURE.md` for design
+
+7. Optional: Dockerize custom MCP server (Phase 2)
+   - Deploy for team-wide access
+   - Cloud-hosted option (Railway, Fly.io, etc.)
+
+### Alternative Paths
+- Use remote `mcp.semgrep.ai` (quick but risky)
+- Acquire Semgrep Pro license (if budget allows)
+- Use Semgrep CLI in CI/CD only (no real-time scanning)
 

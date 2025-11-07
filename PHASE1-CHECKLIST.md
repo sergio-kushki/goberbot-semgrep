@@ -1,5 +1,7 @@
 # Phase 1: Local STDIO Setup - Checklist
 
+> **⚡ Quick Win:** For immediate MCP integration, use the **remote hosted server** at `https://mcp.semgrep.ai/mcp` (see Remote MCP Server section at bottom) - no local installation required!
+
 ## Installation Steps
 
 - [x] **Install Semgrep CLI** ✅
@@ -245,5 +247,44 @@ Once Phase 1 is complete:
 - **Performance**: Sub-second scans on small test files
 
 **Date Completed**: November 6, 2025  
-**Status**: ✅ Phase 1 Complete (CLI Success, MCP Partial)
+**Status**: ✅ **Phase 1 FULLY Complete** (CLI Success, MCP Remote Server Success!)
+
+### 🚨 CRITICAL UPDATE: Remote MCP Server Discovery
+
+After initial testing showed local MCP limitations, we discovered the **remote hosted MCP server**:
+
+**Remote Server Configuration:**
+```json
+{
+  "mcpServers": {
+    "semgrep2": {
+      "type": "streamable-http",
+      "url": "https://mcp.semgrep.ai/mcp"
+    }
+  }
+}
+```
+
+**Results:**
+- ✅ **Full MCP functionality** without Semgrep Pro license
+- ✅ **All scanning tools available** (security_check, semgrep_scan, etc.)
+- ✅ **Successfully scanned vulnerable.js** - Found 3 security issues
+- ✅ **Direct AI integration working** in Cursor
+- ✅ **Free hosted service** - No local setup required
+
+**Tools Available from Remote Server:**
+- `security_check` - Fast security vulnerability scanning
+- `semgrep_scan` - Full code scanning with configurations
+- `semgrep_scan_with_custom_rule` - Use custom Semgrep rules
+- `get_abstract_syntax_tree` - AST generation
+- `semgrep_findings` - Query Semgrep AppSec Platform findings
+- Access to 5,000+ built-in Semgrep rules
+
+**Why We Missed This Initially:**
+- The deprecation notice mentioned "mcp.semgrep.ai" being deprecated
+- We interpreted this as the entire hosted service being discontinued
+- In reality, only the old package name/method was deprecated
+- The remote service at `https://mcp.semgrep.ai/mcp` remains fully operational
+
+**Recommendation:** Use the **remote MCP server** for production - it's maintained by Semgrep, requires no local setup, and provides full functionality without a Pro license.
 
