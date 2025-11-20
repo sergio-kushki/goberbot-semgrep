@@ -45,19 +45,25 @@ Complete setup instructions for deploying the Goberbot-Semgrep MCP server from s
 
 ## 🚀 Quick Start
 
-For the impatient - get up and running in 3 commands:
+For the impatient - get up and running in 2 commands:
 
 ```bash
 # 1. Clone the repository
 git clone <your-repo-url> goberbot-semgrep
 cd goberbot-semgrep
 
-# 2. Start the MCP server
-cd mcp-server
-docker-compose up -d
+# 2. Start the MCP server (automatically builds on first run)
+./start-server.sh
 
 # 3. Configure Cursor (see Cursor IDE Configuration section)
 ```
+
+**What happens on first run:**
+- Detects this is a fresh machine
+- Automatically builds the Docker image (2-5 minutes)
+- Installs all dependencies (Python, Semgrep, FastMCP, etc.)
+- Starts the server
+- No manual installation needed!
 
 The server will be running at `http://localhost:8000/mcp`
 
@@ -316,17 +322,34 @@ docker logs goberbot-semgrep-mcp-server --tail 50
 ### Restart the Server
 
 ```bash
+# Simple restart (keeps existing image)
+./start-server.sh
+
+# Or using docker-compose directly
 cd mcp-server
-
-# Stop the server
-docker-compose down
-
-# Start the server
-docker-compose up -d
-
-# Or restart in one command
 docker-compose restart
 ```
+
+### Rebuild After Changes
+
+If you've modified rules, Dockerfile, or requirements:
+
+```bash
+# Force a complete rebuild
+./start-server.sh --rebuild
+
+# Or manually
+cd mcp-server
+docker-compose down
+docker-compose build --no-cache
+docker-compose up -d
+```
+
+**When to rebuild:**
+- After adding/modifying custom rules in `custom-rules/`
+- After updating `requirements.txt`
+- After changing `Dockerfile`
+- When dependencies need updating
 
 ### Reset Everything
 

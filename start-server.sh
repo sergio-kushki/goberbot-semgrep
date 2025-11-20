@@ -1,8 +1,19 @@
 #!/bin/bash
 # Goberbot-Semgrep MCP Server - Quick Start Script
 # This script starts the MCP server and verifies it's running correctly
+#
+# Usage:
+#   ./start-server.sh          # Normal start (builds if needed)
+#   ./start-server.sh --rebuild # Force rebuild from scratch
 
 set -e  # Exit on error
+
+FORCE_REBUILD=false
+
+# Parse arguments
+if [ "$1" == "--rebuild" ] || [ "$1" == "-r" ]; then
+    FORCE_REBUILD=true
+fi
 
 echo "╔══════════════════════════════════════════════════════════════╗"
 echo "║     Goberbot-Semgrep MCP Server - Quick Start                ║"
@@ -33,6 +44,26 @@ cd "$(dirname "$0")/mcp-server"
 echo "📦 Starting Goberbot-Semgrep MCP Server..."
 echo ""
 
+# Force rebuild if requested
+if [ "$FORCE_REBUILD" = true ]; then
+    echo "🔨 Force rebuild requested - cleaning and rebuilding..."
+    echo ""
+    docker-compose down 2>/dev/null || true
+    docker-compose build --no-cache
+    echo ""
+    echo "✅ Fresh build completed!"
+    echo ""
+# Check if image exists (first time setup)
+elif ! docker images | grep -q "mcp-server-goberbot-semgrep-mcp"; then
+    echo "🏗️  First time setup detected - building Docker image..."
+    echo "   This may take 2-5 minutes..."
+    echo ""
+    docker-compose build
+    echo ""
+    echo "✅ Image built successfully!"
+    echo ""
+fi
+
 # Check if container is already running
 if docker ps | grep -q goberbot-semgrep-mcp-server; then
     echo "⚠️  Server is already running"
@@ -46,7 +77,8 @@ if docker ps | grep -q goberbot-semgrep-mcp-server; then
         echo "ℹ️  Keeping existing server running"
     fi
 else
-    # Start the server
+    # Start the server (will build if needed, but we already built above for first-time)
+    echo "🚀 Starting server container..."
     docker-compose up -d
 fi
 
@@ -97,7 +129,8 @@ echo "📚 Full documentation: See SETUP.md"
 echo ""
 echo "🛠️  Useful Commands:"
 echo "   - View logs:    docker logs -f goberbot-semgrep-mcp-server"
-echo "   - Stop server:  cd mcp-server && docker-compose down"
-echo "   - Restart:      cd mcp-server && docker-compose restart"
+echo "   - Stop server:  ./stop-server.sh"
+echo "   - Restart:      ./start-server.sh"
+echo "   - Rebuild:      ./start-server.sh --rebuild"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
