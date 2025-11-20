@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  goberbot-semgrep-mcp:
+    build:
+      context: ..
+      dockerfile: mcp-server/Dockerfile
+    container_name: goberbot-semgrep-mcp-server
+    ports:
+      - "8000:8000"
+    environment:
+      - MCP_HOST=0.0.0.0
+      - MCP_PORT=8000
+      # Optional: Set this to fetch rules from external URL
+      # - CUSTOM_RULES_URL=https://raw.githubusercontent.com/yourorg/rules/main/security.yaml
+    volumes:
+      # Optional: Mount local rules directory (overrides bundled rules)
+      - ../custom-rules:/app/custom-rules:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c 'import socket; s = socket.socket(); s.settimeout(1); s.connect((\"localhost\", 8000)); s.close()' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+# For testing with multiple instances
+# Uncomment to run multiple servers on different ports
+#  semgrep-mcp-dev:
+#    extends: semgrep-mcp
+#    container_name: semgrep-mcp-dev
+#    ports:
+#      - "8001:8000"
+#    environment:
+#      - MCP_PORT=8000
+

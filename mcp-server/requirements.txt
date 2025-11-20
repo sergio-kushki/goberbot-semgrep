@@ -1,0 +1,9 @@
+# MCP Server Dependencies
+mcp>=1.0.0
+fastmcp>=2.3.0  # Native streamable-http transport (no FastAPI/Uvicorn needed)
+aiohttp>=3.9.0  # For HTTP client operations (fetching rules from URLs)
+aiofiles>=23.0.0  # For async file operations
+
+# Note: Semgrep CLI is installed as a standalone binary in Dockerfile
+# to avoid Python dependency conflicts (rich version incompatibility)
+

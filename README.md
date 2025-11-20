@@ -1,6 +1,30 @@
-# Semgrep MCP POC
+# Goberbot-Semgrep MCP Server
 
-A proof-of-concept for using Semgrep's official MCP server with custom configurations and deployment options.
+A production-ready Model Context Protocol (MCP) server that integrates Semgrep static analysis with Cursor IDE and other MCP-compatible clients. Features custom security and code quality rules with Docker-based deployment.
+
+## 🚀 Quick Start (New Machine Setup)
+
+**Get up and running in 3 commands:**
+
+```bash
+# 1. Clone and navigate
+git clone <repo-url> goberbot-semgrep && cd goberbot-semgrep
+
+# 2. Start the server
+./start-server.sh
+
+# 3. Configure Cursor IDE (see SETUP.md)
+```
+
+📚 **Complete setup guide:** See [`SETUP.md`](./SETUP.md) for detailed instructions
+
+## 📖 What's Included
+
+- **Custom MCP Server** - FastMCP 2.13.1 with native streamable-http transport
+- **Semgrep Integration** - Version 1.144.0 with full CLI support
+- **Custom Rules** - 14 security and code quality rules
+- **Docker Deployment** - One-command startup with `docker-compose`
+- **Test Files** - Vulnerable code samples for validation
 
 ## Project Phases
 
@@ -236,7 +260,7 @@ railway up
 
 ---
 
-## Phase 3: Custom MCP Server (Planned) - **RECOMMENDED PATH**
+## Phase 3: Custom MCP Server ✅ **COMPLETE** - **RECOMMENDED PATH**
 
 **Why Custom?** After Phase 1 testing, we discovered:
 - ❌ Local `semgrep-mcp` package is deprecated (no scanning tools)
@@ -246,21 +270,28 @@ railway up
   - No customization possible
   - Can't use custom rules from `custom-rules/`
 
-**Solution:** Build custom MCP server wrapping Semgrep CLI
+**Solution:** Built custom MCP server wrapping Semgrep CLI ✅
 
-**Planned Features:**
+**Implemented Features:**
+- ✅ FastMCP 2.0 with streamable HTTP
 - ✅ Full control over functionality
 - ✅ Local execution (privacy & security)
 - ✅ Custom rule integration (`custom-rules/`)
-- ✅ Git commit range analysis
-- ✅ Team-specific rule management
-- ✅ Enhanced reporting and dashboards
-- ✅ CI/CD pipeline integration
-- ✅ Custom preprocessing logic
-- ✅ Result filtering and aggregation
-- ✅ Performance metrics
+- ✅ Hybrid rules loading (URL → Bundled → S3 ready)
+- ✅ Docker native deployment
+- ✅ EC2 deployment ready
+- ✅ Health checks & monitoring
+- ✅ Three MCP tools: scan_code, list_available_rules, reload_rules
 
-**See:** `PHASE3-ARCHITECTURE.md` for detailed design
+**Quick Start:**
+```bash
+cd mcp-server
+./quick-start.sh
+```
+
+**See:** 
+- `mcp-server/README.md` for usage
+- `EC2-DEPLOYMENT.md` for cloud deployment
 
 ---
 
@@ -268,17 +299,33 @@ railway up
 
 ```
 goberbot-semgrep/
-├── README.md                 # This file
-├── custom-rules/            # Custom Semgrep rules
-│   └── security.yaml
-├── docker/                  # Docker configurations (Phase 2)
-│   ├── Dockerfile
-│   └── docker-compose.yml
-├── tests/                   # Test files and scripts
-│   ├── test-requests/
-│   └── sample-code/
-└── wrapper/                 # Custom wrapper code (Phase 3)
-    └── (TBD)
+├── README.md                    # This file
+├── EC2-DEPLOYMENT.md            # AWS EC2 deployment guide
+├── PHASE1-CHECKLIST.md          # Phase 1 testing results
+├── PHASE3-ARCHITECTURE.md       # Phase 3 technical design
+├── STRATEGIC-SUMMARY.md         # Strategic analysis
+├── custom-rules/                # Custom Semgrep rules
+│   ├── security.yaml            # Security vulnerability rules
+│   └── code-quality.yaml        # Code quality rules
+├── mcp-server/                  # Custom MCP Server (Phase 3) ✅
+│   ├── server.py                # FastMCP 2.0 server
+│   ├── semgrep_runner.py        # Semgrep CLI wrapper
+│   ├── requirements.txt         # Python dependencies
+│   ├── Dockerfile               # Container definition
+│   ├── docker-compose.yml       # Local testing setup
+│   ├── Makefile                 # Convenience commands
+│   ├── quick-start.sh           # One-command startup
+│   ├── test-server.sh           # Integration tests
+│   └── README.md                # Server documentation
+├── scripts/                     # Test and utility scripts
+│   ├── test-local-scan-custom.sh
+│   ├── test-local-scan-native.sh
+│   └── test-local-scan-all.sh
+└── tests/                       # Test files and results
+    ├── sample-code/
+    │   ├── vulnerable.js
+    │   └── vulnerable.py
+    └── results-*.json
 ```
 
 ## Resources
@@ -297,18 +344,28 @@ goberbot-semgrep/
 4. ✅ Validate custom rules (17 findings in test files)
 5. ✅ Document learnings and limitations
 
-### Recommended Path Forward
-6. **⭐ Build Custom MCP Server (Phase 3)** - PRIORITY
-   - Wrap Semgrep CLI in custom MCP implementation
-   - Full control, privacy, and custom functionality
-   - See `PHASE3-ARCHITECTURE.md` for design
+### Completed (Phase 3) ✅
+6. ✅ **Built Custom MCP Server** - DONE
+   - FastMCP 2.0 implementation with HTTP transport
+   - Semgrep CLI wrapper with hybrid rules loading
+   - Dockerized for easy deployment
+   - EC2 deployment guide created
 
-7. Optional: Dockerize custom MCP server (Phase 2)
-   - Deploy for team-wide access
-   - Cloud-hosted option (Railway, Fly.io, etc.)
+### Next Steps (Production Ready)
+7. **Deploy to EC2** (See `EC2-DEPLOYMENT.md`)
+   - Launch EC2 instance
+   - Deploy Docker container
+   - Configure Cursor IDE
 
-### Alternative Paths
-- Use remote `mcp.semgrep.ai` (quick but risky)
-- Acquire Semgrep Pro license (if budget allows)
-- Use Semgrep CLI in CI/CD only (no real-time scanning)
+8. **Team Integration**
+   - Share EC2 endpoint with team
+   - Set up VPN or SSH tunnels for security
+   - Consider multiple instances for availability
+
+### Optional Enhancements
+- Add authentication (JWT tokens)
+- Implement S3 rules fetching
+- Add caching for performance
+- Git diff scanning integration
+- Metrics dashboard
 

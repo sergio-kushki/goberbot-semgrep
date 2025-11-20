@@ -1,0 +1,530 @@
+{
+	"info": {
+		"_postman_id": "d1b7a7f2-977b-4e3f-a887-967e6585d1b0",
+		"name": "Prosa Gateway",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "16247230"
+	},
+	"item": [
+		{
+			"name": "Prosa Charge Visa",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Función para agregar un cero a la izquierda si el número es menor a 10",
+							"const pad = (num) => String(num).padStart(2, '0');",
+							"",
+							"// --- 1. Generar UUID para transaction_reference ---",
+							"// Postman ya tiene una variable dinámica para esto, pero la establecemos para consistencia.",
+							"pm.collectionVariables.set(\"dynamic_transaction_reference\", pm.variables.replaceIn('{{$randomUUID}}'));",
+							"pm.collectionVariables.set(\"dynamic_client_id\", pm.variables.replaceIn('{{$randomUUID}}'));",
+							"",
+							"// --- 2. Generar fecha y hora UTC para f7 ---",
+							"const now_utc = new Date();",
+							"const month_utc = pad(now_utc.getUTCMonth() + 1); // getUTCMonth() es 0-11",
+							"const day_utc = pad(now_utc.getUTCDate());",
+							"const hours_utc = pad(now_utc.getUTCHours());",
+							"const minutes_utc = pad(now_utc.getUTCMinutes());",
+							"const seconds_utc = pad(now_utc.getUTCSeconds());",
+							"const f7_value = `${month_utc}${day_utc}${hours_utc}${minutes_utc}${seconds_utc}`;",
+							"pm.collectionVariables.set(\"dynamic_f7\", f7_value);",
+							"",
+							"// --- 3. Generar contador secuencial para f11 ---",
+							"let sequentialTrx = pm.collectionVariables.get(\"sequential_trx_counter\");",
+							"// Si el contador no existe, lo inicializamos en 1. Si existe, lo incrementamos.",
+							"if (isNaN(sequentialTrx)) {",
+							"    sequentialTrx = 1;",
+							"} else {",
+							"    sequentialTrx = parseInt(sequentialTrx) + 1;",
+							"}",
+							"// Guardamos el nuevo valor del contador",
+							"pm.collectionVariables.set(\"sequential_trx_counter\", sequentialTrx);",
+							"// Formateamos a 6 dígitos con ceros a la izquierda",
+							"const f11_value = String(sequentialTrx).padStart(6, '0');",
+							"pm.collectionVariables.set(\"dynamic_f11\", f11_value);",
+							"",
+							"// --- 4. Generar hora local para f12 ---",
+							"const now_local = new Date();",
+							"const hours_local = pad(now_local.getHours());",
+							"const minutes_local = pad(now_local.getMinutes());",
+							"const seconds_local = pad(now_local.getSeconds());",
+							"const f12_value = `${hours_local}${minutes_local}${seconds_local}`;",
+							"pm.collectionVariables.set(\"dynamic_f12\", f12_value);",
+							"",
+							"// --- 5. Generar valor para f37 ---",
+							"// Función para obtener el día Juliano",
+							"const getJulianDay = (date) => {",
+							"    const start = new Date(date.getFullYear(), 0, 0);",
+							"    const diff = (date - start) + ((start.getTimezoneOffset() - date.getTimezoneOffset()) * 60 * 1000);",
+							"    const oneDay = 1000 * 60 * 60 * 24;",
+							"    return Math.floor(diff / oneDay);",
+							"};",
+							"",
+							"const currentTime = new Date();",
+							"const year = String(currentTime.getFullYear()).slice(-1); // Último dígito del año",
+							"const dayJulian = String(getJulianDay(currentTime)).padStart(3, '0'); // Día Juliano de 3 dígitos",
+							"const hour = pad(currentTime.getHours()); // Hora de 2 dígitos",
+							"const sequentialPart = f11_value; // Usamos el contador ya generado para f11",
+							"",
+							"const f37_value = `${year}${dayJulian}${hour}${sequentialPart}`;",
+							"pm.collectionVariables.set(\"dynamic_f37\", f37_value);",
+							"",
+							"// --- 6. Generar fecha (MMDD) para f11_f17 --- (NUEVA SECCIÓN)",
+							"const month_local = pad(now_local.getMonth() + 1); // getMonth() es 0-11, por eso se suma 1",
+							"const day_local = pad(now_local.getDate());",
+							"const f13_f17_value = `${month_local}${day_local}`;",
+							"pm.collectionVariables.set(\"dynamic_f13_f17\", f13_f17_value);"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"transaction_reference\": \"{{dynamic_transaction_reference}}\",\n    \"source\": \"ecommerce\",\n    \"transaction_mode\": \"Authorization\",\n    \"transaction_type\": \"Charge\",\n    \"f3\": \"000000\",\n    \"f4\": \"50.060000\",\n    \"f7\": \"{{dynamic_f7}}\",\n    \"f11\": \"{{dynamic_f11}}\",\n    \"f12\": \"{{dynamic_f12}}\",\n    \"f13\": \"{{dynamic_f13_f17}}\",\n    \"f17\": \"{{dynamic_f13_f17}}\",\n    \"f18\": \"5933\",\n    \"f22\": \"010\",\n    \"f32\": \"00000000747\",\n    \"f35\": \"4868459855149549=3112\",\n    \"f37\": \"{{dynamic_f37}}\",\n    \"f41\": \"1725414861414   \",\n    \"f42\": \"3348502\",\n    \"f43\": \"MEXA 3DS              NA           000MX\",\n    \"f48\": \"3348502            59331224\",\n    \"f49\": \"484\",\n    \"f60\": \"P747KUSK+0000000\",\n    \"f61\": \"0000000000000000000\",\n    \"f63\": \"& 0000700456! C000026      001          7  0 012! C400012 102510023660! Q200002 09! BL00034 4868459855149549   3112           ! TV00230 0002                                   4868459855149549   1140010030273                                                   311202                                                                                           4          ! C600080 /gAAAAIAPsHxhCQAAAAAgP9gE4A=                                                    \",\n    \"f100\": \"000000000\",\n    \"f120\": \"mexa 3ds\",\n    \"f121\": \"         P0\",\n    \"f125\": \"VcHOSTB24 10\",\n    \"f126\": \"00000000000000000000000000000000000000\",\n    \"country\": \"MEX\",\n    \"vault_token\": \"EM4TONZUGAYTMMZXGI4TOMRYG4YTEOBXGU4TMOJWGY4DSOBXGU3TCMRTGY2TOMZWG4YDCOJVHE4TSNZWGU3DMOJXG43DAMRSG43DIMZQEMSDSNZWG43TCNRYGAZDSNBZHE3DQOJVGAYTSNJZGM3DQNRYG4YTMNRSGM3DKNZUHE4DOMBWGYYDGNRUHE3DSNZZG43TONZSHE2DSMZZGUSEANRUG4ZDSNRWHA4TSMRVGAZTMMRZG4YDCMRYGI3TMOBZHA3DQNRYGI2DMMBXGU4TIOJZHEZTEOBZHE4TGOJXGYZDONBZGU4TOOJUHE3UA===\",\n    \"card_type\": \"credit\",\n    \"issuer_bank\": \"SI VALE\",\n    \"client_transaction_id\": \"{{dynamic_client_id}}\",\n    \"token_type\": \"transaction\",\n    \"merchant_id\": \"6000000000172541486137866934\",\n    \"brand\": \"VISA\",\n    \"amount\": {\n        \"currency\": \"MXN\",\n        \"extra_taxes_info\": {},\n        \"subtotal_iva_0\": 21\n    },\n    \"masked_pan\": \"401092XXXXXX4510\",\n    \"affiliation_code\": \"1234\",\n    \"merchant_information_id\": \"20000000106215354000\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:3030/transaction",
+					"host": [
+						"localhost"
+					],
+					"port": "3030",
+					"path": [
+						"transaction"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Prosa COF Visa",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Función para agregar un cero a la izquierda si el número es menor a 10",
+							"const pad = (num) => String(num).padStart(2, '0');",
+							"",
+							"// --- 1. Generar UUID para transaction_reference ---",
+							"// Postman ya tiene una variable dinámica para esto, pero la establecemos para consistencia.",
+							"pm.collectionVariables.set(\"dynamic_transaction_reference\", pm.variables.replaceIn('{{$randomUUID}}'));",
+							"pm.collectionVariables.set(\"dynamic_client_id\", pm.variables.replaceIn('{{$randomUUID}}'));",
+							"",
+							"// --- 2. Generar fecha y hora UTC para f7 ---",
+							"const now_utc = new Date();",
+							"const month_utc = pad(now_utc.getUTCMonth() + 1); // getUTCMonth() es 0-11",
+							"const day_utc = pad(now_utc.getUTCDate());",
+							"const hours_utc = pad(now_utc.getUTCHours());",
+							"const minutes_utc = pad(now_utc.getUTCMinutes());",
+							"const seconds_utc = pad(now_utc.getUTCSeconds());",
+							"const f7_value = `${month_utc}${day_utc}${hours_utc}${minutes_utc}${seconds_utc}`;",
+							"pm.collectionVariables.set(\"dynamic_f7\", f7_value);",
+							"",
+							"// --- 3. Generar contador secuencial para f11 ---",
+							"let sequentialTrx = pm.collectionVariables.get(\"sequential_trx_counter\");",
+							"// Si el contador no existe, lo inicializamos en 1. Si existe, lo incrementamos.",
+							"if (isNaN(sequentialTrx)) {",
+							"    sequentialTrx = 1;",
+							"} else {",
+							"    sequentialTrx = parseInt(sequentialTrx) + 1;",
+							"}",
+							"// Guardamos el nuevo valor del contador",
+							"pm.collectionVariables.set(\"sequential_trx_counter\", sequentialTrx);",
+							"// Formateamos a 6 dígitos con ceros a la izquierda",
+							"const f11_value = String(sequentialTrx).padStart(6, '0');",
+							"pm.collectionVariables.set(\"dynamic_f11\", f11_value);",
+							"",
+							"// --- 4. Generar hora local para f12 ---",
+							"const now_local = new Date();",
+							"const hours_local = pad(now_local.getHours());",
+							"const minutes_local = pad(now_local.getMinutes());",
+							"const seconds_local = pad(now_local.getSeconds());",
+							"const f12_value = `${hours_local}${minutes_local}${seconds_local}`;",
+							"pm.collectionVariables.set(\"dynamic_f12\", f12_value);",
+							"",
+							"// --- 5. Generar valor para f37 ---",
+							"// Función para obtener el día Juliano",
+							"const getJulianDay = (date) => {",
+							"    const start = new Date(date.getFullYear(), 0, 0);",
+							"    const diff = (date - start) + ((start.getTimezoneOffset() - date.getTimezoneOffset()) * 60 * 1000);",
+							"    const oneDay = 1000 * 60 * 60 * 24;",
+							"    return Math.floor(diff / oneDay);",
+							"};",
+							"",
+							"const currentTime = new Date();",
+							"const year = String(currentTime.getFullYear()).slice(-1); // Último dígito del año",
+							"const dayJulian = String(getJulianDay(currentTime)).padStart(3, '0'); // Día Juliano de 3 dígitos",
+							"const hour = pad(currentTime.getHours()); // Hora de 2 dígitos",
+							"const sequentialPart = f11_value; // Usamos el contador ya generado para f11",
+							"",
+							"const f37_value = `${year}${dayJulian}${hour}${sequentialPart}`;",
+							"pm.collectionVariables.set(\"dynamic_f37\", f37_value);",
+							"",
+							"// --- 6. Generar fecha (MMDD) para f11_f17 --- (NUEVA SECCIÓN)",
+							"const month_local = pad(now_local.getMonth() + 1); // getMonth() es 0-11, por eso se suma 1",
+							"const day_local = pad(now_local.getDate());",
+							"const f13_f17_value = `${month_local}${day_local}`;",
+							"pm.collectionVariables.set(\"dynamic_f13_f17\", f13_f17_value);"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"transaction_reference\": \"{{dynamic_transaction_reference}}\",\n    \"source\": \"ecommerce\",\n    \"transaction_mode\": \"Authorization\",\n    \"transaction_type\": \"Charge\",\n    \"f3\": \"003000\",\n    \"f4\": \"1.000000\",\n    \"f7\": \"{{dynamic_f7}}\",\n    \"f11\": \"{{dynamic_f11}}\",\n    \"f12\": \"{{dynamic_f12}}\",\n    \"f13\": \"{{dynamic_f13_f17}}\",\n    \"f17\": \"{{dynamic_f13_f17}}\",\n    \"f18\": \"5599\",\n    \"f22\": \"810\",\n    \"f32\": \"00000000747\",\n    \"f35\": \"4815140500981722=3111\",\n    \"f37\": \"{{dynamic_f37}}\",\n    \"f41\": \"1711475002125   \",\n    \"f42\": \"5999\",\n    \"f43\": \"CECE                               000MX\",\n    \"f48\": \"0005999            55991224\",\n    \"f49\": \"484\",\n    \"f60\": \"P747AGRE+0000000\",\n    \"f61\": \"0000000000000000000\",\n    \"f62\": \"          \",\n    \"f63\": \"& 0000600154! C000026 123  001          5  1    ! C400012 102510023660! Q200002 09! PJ00002 EC! FA00050 226224     00000226224000108336337000   484       \",\n    \"f100\": \"000000000\",\n    \"f120\": \"cece\",\n    \"f121\": \"         P0\",\n    \"f125\": \"VcINTRB24 10\",\n    \"f126\": \"00000000000000000000000000000000000000\",\n    \"country\": \"MEX\",\n    \"vault_token\": \"EQ4TSNRWG43TMOBXGI4TQMBQG4ZTSNRXGYYDEMRZGY4TAMRWG4YDAMBQHE3DSNZSHA3DCOJVHE3TSMRXGI3DEMBQGI4DSOJSHAZDQNZVEQRTSMRXGIYDCNRVGY3DSNJXGAYDEMZQGAZTANBQGE3DQNZTG4ZDOMBQGA3DKMRZGAZDMMBWHE4TMNZQGAZDMOBZHAYDAMBQGI2TGMJQGERUANRZG42DAMBWGM3DMNRUHE2DAMRZGQYDKNZVGAYDMOJQGE3TCMBRGI2DSMRZG4YDANRRHE4DMMRQGE4TQNRYGI4TAMZWHAZTAMRXGA2EA===\",\n    \"card_type\": \"credit\",\n    \"issuer_bank\": \"bank\",\n    \"token_type\": \"subscription\",\n    \"merchant_id\": \"6000000000171147500277897442\",\n    \"brand\": \"VISA\",\n    \"merchant_information_id\": \"20000000108336337000\",\n    \"client_transaction_id\": \"{{dynamic_client_id}}\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:3030/transaction",
+					"host": [
+						"localhost"
+					],
+					"port": "3030",
+					"path": [
+						"transaction"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Prosa COF MC",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Función para agregar un cero a la izquierda si el número es menor a 10",
+							"const pad = (num) => String(num).padStart(2, '0');",
+							"",
+							"// --- 1. Generar UUID para transaction_reference ---",
+							"// Postman ya tiene una variable dinámica para esto, pero la establecemos para consistencia.",
+							"pm.collectionVariables.set(\"dynamic_transaction_reference\", pm.variables.replaceIn('{{$randomUUID}}'));",
+							"pm.collectionVariables.set(\"dynamic_client_id\", pm.variables.replaceIn('{{$randomUUID}}'));",
+							"",
+							"// --- 2. Generar fecha y hora UTC para f7 ---",
+							"const now_utc = new Date();",
+							"const month_utc = pad(now_utc.getUTCMonth() + 1); // getUTCMonth() es 0-11",
+							"const day_utc = pad(now_utc.getUTCDate());",
+							"const hours_utc = pad(now_utc.getUTCHours());",
+							"const minutes_utc = pad(now_utc.getUTCMinutes());",
+							"const seconds_utc = pad(now_utc.getUTCSeconds());",
+							"const f7_value = `${month_utc}${day_utc}${hours_utc}${minutes_utc}${seconds_utc}`;",
+							"pm.collectionVariables.set(\"dynamic_f7\", f7_value);",
+							"",
+							"// --- 3. Generar contador secuencial para f11 ---",
+							"let sequentialTrx = pm.collectionVariables.get(\"sequential_trx_counter\");",
+							"// Si el contador no existe, lo inicializamos en 1. Si existe, lo incrementamos.",
+							"if (isNaN(sequentialTrx)) {",
+							"    sequentialTrx = 1;",
+							"} else {",
+							"    sequentialTrx = parseInt(sequentialTrx) + 1;",
+							"}",
+							"// Guardamos el nuevo valor del contador",
+							"pm.collectionVariables.set(\"sequential_trx_counter\", sequentialTrx);",
+							"// Formateamos a 6 dígitos con ceros a la izquierda",
+							"const f11_value = String(sequentialTrx).padStart(6, '0');",
+							"pm.collectionVariables.set(\"dynamic_f11\", f11_value);",
+							"",
+							"// --- 4. Generar hora local para f12 ---",
+							"const now_local = new Date();",
+							"const hours_local = pad(now_local.getHours());",
+							"const minutes_local = pad(now_local.getMinutes());",
+							"const seconds_local = pad(now_local.getSeconds());",
+							"const f12_value = `${hours_local}${minutes_local}${seconds_local}`;",
+							"pm.collectionVariables.set(\"dynamic_f12\", f12_value);",
+							"",
+							"// --- 5. Generar valor para f37 ---",
+							"// Función para obtener el día Juliano",
+							"const getJulianDay = (date) => {",
+							"    const start = new Date(date.getFullYear(), 0, 0);",
+							"    const diff = (date - start) + ((start.getTimezoneOffset() - date.getTimezoneOffset()) * 60 * 1000);",
+							"    const oneDay = 1000 * 60 * 60 * 24;",
+							"    return Math.floor(diff / oneDay);",
+							"};",
+							"",
+							"const currentTime = new Date();",
+							"const year = String(currentTime.getFullYear()).slice(-1); // Último dígito del año",
+							"const dayJulian = String(getJulianDay(currentTime)).padStart(3, '0'); // Día Juliano de 3 dígitos",
+							"const hour = pad(currentTime.getHours()); // Hora de 2 dígitos",
+							"const sequentialPart = f11_value; // Usamos el contador ya generado para f11",
+							"",
+							"const f37_value = `${year}${dayJulian}${hour}${sequentialPart}`;",
+							"pm.collectionVariables.set(\"dynamic_f37\", f37_value);"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Función para agregar un cero a la izquierda si el número es menor a 10",
+							"const pad = (num) => String(num).padStart(2, '0');",
+							"",
+							"// --- 1. Generar UUID para transaction_reference ---",
+							"// Postman ya tiene una variable dinámica para esto, pero la establecemos para consistencia.",
+							"pm.collectionVariables.set(\"dynamic_transaction_reference\", pm.variables.replaceIn('{{$randomUUID}}'));",
+							"pm.collectionVariables.set(\"dynamic_client_id\", pm.variables.replaceIn('{{$randomUUID}}'));",
+							"",
+							"// --- 2. Generar fecha y hora UTC para f7 ---",
+							"const now_utc = new Date();",
+							"const month_utc = pad(now_utc.getUTCMonth() + 1); // getUTCMonth() es 0-11",
+							"const day_utc = pad(now_utc.getUTCDate());",
+							"const hours_utc = pad(now_utc.getUTCHours());",
+							"const minutes_utc = pad(now_utc.getUTCMinutes());",
+							"const seconds_utc = pad(now_utc.getUTCSeconds());",
+							"const f7_value = `${month_utc}${day_utc}${hours_utc}${minutes_utc}${seconds_utc}`;",
+							"pm.collectionVariables.set(\"dynamic_f7\", f7_value);",
+							"",
+							"// --- 3. Generar contador secuencial para f11 ---",
+							"let sequentialTrx = pm.collectionVariables.get(\"sequential_trx_counter\");",
+							"// Si el contador no existe, lo inicializamos en 1. Si existe, lo incrementamos.",
+							"if (isNaN(sequentialTrx)) {",
+							"    sequentialTrx = 1;",
+							"} else {",
+							"    sequentialTrx = parseInt(sequentialTrx) + 1;",
+							"}",
+							"// Guardamos el nuevo valor del contador",
+							"pm.collectionVariables.set(\"sequential_trx_counter\", sequentialTrx);",
+							"// Formateamos a 6 dígitos con ceros a la izquierda",
+							"const f11_value = String(sequentialTrx).padStart(6, '0');",
+							"pm.collectionVariables.set(\"dynamic_f11\", f11_value);",
+							"",
+							"// --- 4. Generar hora local para f12 ---",
+							"const now_local = new Date();",
+							"const hours_local = pad(now_local.getHours());",
+							"const minutes_local = pad(now_local.getMinutes());",
+							"const seconds_local = pad(now_local.getSeconds());",
+							"const f12_value = `${hours_local}${minutes_local}${seconds_local}`;",
+							"pm.collectionVariables.set(\"dynamic_f12\", f12_value);",
+							"",
+							"// --- 5. Generar valor para f37 ---",
+							"// Función para obtener el día Juliano",
+							"const getJulianDay = (date) => {",
+							"    const start = new Date(date.getFullYear(), 0, 0);",
+							"    const diff = (date - start) + ((start.getTimezoneOffset() - date.getTimezoneOffset()) * 60 * 1000);",
+							"    const oneDay = 1000 * 60 * 60 * 24;",
+							"    return Math.floor(diff / oneDay);",
+							"};",
+							"",
+							"const currentTime = new Date();",
+							"const year = String(currentTime.getFullYear()).slice(-1); // Último dígito del año",
+							"const dayJulian = String(getJulianDay(currentTime)).padStart(3, '0'); // Día Juliano de 3 dígitos",
+							"const hour = pad(currentTime.getHours()); // Hora de 2 dígitos",
+							"const sequentialPart = f11_value; // Usamos el contador ya generado para f11",
+							"",
+							"const f37_value = `${year}${dayJulian}${hour}${sequentialPart}`;",
+							"pm.collectionVariables.set(\"dynamic_f37\", f37_value);",
+							"",
+							"// --- 6. Generar fecha (MMDD) para f11_f17 --- (NUEVA SECCIÓN)",
+							"const month_local = pad(now_local.getMonth() + 1); // getMonth() es 0-11, por eso se suma 1",
+							"const day_local = pad(now_local.getDate());",
+							"const f13_f17_value = `${month_local}${day_local}`;",
+							"pm.collectionVariables.set(\"dynamic_f13_f17\", f13_f17_value);"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"transaction_reference\": \"{{dynamic_transaction_reference}}\",\n    \"source\": \"ecommerce\",\n    \"transaction_mode\": \"Authorization\",\n    \"transaction_type\": \"Charge\",\n    \"f3\": \"813000\",\n    \"f4\": \"0.000000\",\n    \"f7\": \"{{dynamic_f7}}\",\n    \"f11\": \"{{dynamic_f11}}\",\n    \"f12\": \"{{dynamic_f12}}\",\n    \"f13\": \"{{dynamic_f13_f17}}\",\n    \"f17\": \"{{dynamic_f13_f17}}\",\n    \"f18\": \"5599\",\n    \"f22\": \"810\",\n    \"f32\": \"00000000747\",\n    \"f35\": \"5491380221694509=3111\",\n    \"f37\": \"{{dynamic_f37}}\",\n    \"f41\": \"1711475002125   \",\n    \"f42\": \"5999\",\n    \"f43\": \"CECE                               000MX\",\n    \"f48\": \"0005999            55991224\",\n    \"f49\": \"484\",\n    \"f60\": \"P747AGRE+0000000\",\n    \"f61\": \"0000000000000000000\",\n    \"f62\": \"          \",\n    \"f63\": \"& 0000600154! C000026 123  001          5  1    ! C400012 102510023660! Q200002 09! PJ00002 EC! FA00050 0000022622400000226224000108336337000   484       \",\n    \"f100\": \"000000000\",\n    \"f120\": \"cece\",\n    \"f121\": \"         P0\",\n    \"f125\": \"McINTRB24 10\",\n    \"f126\": \"00000000000000000000000000000000000000\",\n    \"country\": \"MEX\",\n    \"vault_token\": \"EQYTAMBSHA3DGOJZGY2DANBZGE3TEMBQHE2DSNZXGA3DSMRWGA2DMNRQGA4TONZRHE3TOMJZHE3DIMZQGAZTENRZGQ4TQNZWGY3TSNRQGASCGMJQGEYDGNZQGIZDSNJZG43DSOJXG4ZDSNZZG4YDGNRZGI4DANJZGQZDINRYGY2DMNZQGEZDINRXHE4DSOJSGY4TGOJVG4ZDAMJZGYYDGI2AGEZTAMBTG4ZDSOJZGY3TAMBRGAYTANJSG43DOOJVGY4TGMBXG44TKMBRGAZTOMRQGIYDGOJZGY3DSNJXGMZDQNRUGI4TOMJZHEZDKMRZIA======\",\n    \"card_type\": \"credit\",\n    \"issuer_bank\": \"Tarjetas Banamex, SA de CV, SOFOM E.R.\",\n    \"token_type\": \"subscription\",\n    \"merchant_id\": \"6000000000171147500277897442\",\n    \"brand\": \"MASTERCARD\",\n    \"merchant_information_id\": \"20000000108336337000\",\n    \"client_transaction_id\": \"{{dynamic_client_id}}\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:3030/transaction",
+					"host": [
+						"localhost"
+					],
+					"port": "3030",
+					"path": [
+						"transaction"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Prosa Charge MC",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Función para agregar un cero a la izquierda si el número es menor a 10",
+							"const pad = (num) => String(num).padStart(2, '0');",
+							"",
+							"// --- 1. Generar UUID para transaction_reference ---",
+							"// Postman ya tiene una variable dinámica para esto, pero la establecemos para consistencia.",
+							"pm.collectionVariables.set(\"dynamic_transaction_reference\", pm.variables.replaceIn('{{$randomUUID}}'));",
+							"pm.collectionVariables.set(\"dynamic_client_id\", pm.variables.replaceIn('{{$randomUUID}}'));",
+							"",
+							"// --- 2. Generar fecha y hora UTC para f7 ---",
+							"const now_utc = new Date();",
+							"const month_utc = pad(now_utc.getUTCMonth() + 1); // getUTCMonth() es 0-11",
+							"const day_utc = pad(now_utc.getUTCDate());",
+							"const hours_utc = pad(now_utc.getUTCHours());",
+							"const minutes_utc = pad(now_utc.getUTCMinutes());",
+							"const seconds_utc = pad(now_utc.getUTCSeconds());",
+							"const f7_value = `${month_utc}${day_utc}${hours_utc}${minutes_utc}${seconds_utc}`;",
+							"pm.collectionVariables.set(\"dynamic_f7\", f7_value);",
+							"",
+							"// --- 3. Generar contador secuencial para f11 ---",
+							"let sequentialTrx = pm.collectionVariables.get(\"sequential_trx_counter\");",
+							"// Si el contador no existe, lo inicializamos en 1. Si existe, lo incrementamos.",
+							"if (isNaN(sequentialTrx)) {",
+							"    sequentialTrx = 1;",
+							"} else {",
+							"    sequentialTrx = parseInt(sequentialTrx) + 1;",
+							"}",
+							"// Guardamos el nuevo valor del contador",
+							"pm.collectionVariables.set(\"sequential_trx_counter\", sequentialTrx);",
+							"// Formateamos a 6 dígitos con ceros a la izquierda",
+							"const f11_value = String(sequentialTrx).padStart(6, '0');",
+							"pm.collectionVariables.set(\"dynamic_f11\", f11_value);",
+							"",
+							"// --- 4. Generar hora local para f12 ---",
+							"const now_local = new Date();",
+							"const hours_local = pad(now_local.getHours());",
+							"const minutes_local = pad(now_local.getMinutes());",
+							"const seconds_local = pad(now_local.getSeconds());",
+							"const f12_value = `${hours_local}${minutes_local}${seconds_local}`;",
+							"pm.collectionVariables.set(\"dynamic_f12\", f12_value);",
+							"",
+							"// --- 5. Generar valor para f37 ---",
+							"// Función para obtener el día Juliano",
+							"const getJulianDay = (date) => {",
+							"    const start = new Date(date.getFullYear(), 0, 0);",
+							"    const diff = (date - start) + ((start.getTimezoneOffset() - date.getTimezoneOffset()) * 60 * 1000);",
+							"    const oneDay = 1000 * 60 * 60 * 24;",
+							"    return Math.floor(diff / oneDay);",
+							"};",
+							"",
+							"const currentTime = new Date();",
+							"const year = String(currentTime.getFullYear()).slice(-1); // Último dígito del año",
+							"const dayJulian = String(getJulianDay(currentTime)).padStart(3, '0'); // Día Juliano de 3 dígitos",
+							"const hour = pad(currentTime.getHours()); // Hora de 2 dígitos",
+							"const sequentialPart = f11_value; // Usamos el contador ya generado para f11",
+							"",
+							"const f37_value = `${year}${dayJulian}${hour}${sequentialPart}`;",
+							"pm.collectionVariables.set(\"dynamic_f37\", f37_value);",
+							"",
+							"// --- 6. Generar fecha (MMDD) para f11_f17 --- (NUEVA SECCIÓN)",
+							"const month_local = pad(now_local.getMonth() + 1); // getMonth() es 0-11, por eso se suma 1",
+							"const day_local = pad(now_local.getDate());",
+							"const f13_f17_value = `${month_local}${day_local}`;",
+							"pm.collectionVariables.set(\"dynamic_f13_f17\", f13_f17_value);"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"transaction_reference\": \"{{dynamic_transaction_reference}}\",\n    \"source\": \"ecommerce\",\n    \"transaction_mode\": \"Authorization\",\n    \"transaction_type\": \"Charge\",\n    \"f3\": \"000000\",\n    \"f4\": \"21.000000\",\n    \"f7\": \"{{dynamic_f7}}\",\n    \"f11\": \"{{dynamic_f11}}\",\n    \"f12\": \"{{dynamic_f12}}\",\n    \"f13\": \"{{dynamic_f13_f17}}\",\n    \"f17\": \"{{dynamic_f13_f17}}\",\n    \"f18\": \"5933\",\n    \"f22\": \"010\",\n    \"f32\": \"00000000747\",\n    \"f35\": \"5492036297546481=2809\",\n    \"f37\": \"{{dynamic_f37}}\",\n    \"f41\": \"1725414861414   \",\n    \"f42\": \"1234\",\n    \"f43\": \"MEXA 3DS              NA           000MX\",\n    \"f48\": \"0001234            59331224\",\n    \"f49\": \"484\",\n    \"f60\": \"P747KUSK+0000000\",\n    \"f61\": \"0000000000000000000\",\n    \"f63\": \"& 0000400082! C000026      001          7  0 012! C400012 102510023660! Q200002 09! BL00034 5492036297546481   2809           ! TM00230 T  103W+C5492036297546481   2809  50110030273080205                 242                   50C                                                                                                                                         ! CE00202 01AF3M2f2QRtXbAAF6KKgZAoABFA==                                                                                                                                                                            \",\n    \"f100\": \"000000000\",\n    \"f120\": \"mexa 3ds\",\n    \"f121\": \"         P0\",\n    \"f125\": \"McHOSTB24 10\",\n    \"f126\": \"00000000000000000000000000000000000000\",\n    \"country\": \"MEX\",\n    \"vault_token\": \"EQYTANBQGM4TKMBRG44DENRWGU3DOOJZG4ZDMOBXGA3DSMRXG4YTOMRXGY4TQNRYGY4DAMBSGY3DENZWGI3DSNZZGMZDIMBUGA2DMMZSG4SCGNZYGI4DSNBXGE3TCOJSGY2TMNRQGI3TEOJXGY3TMOJQGEYDKMBTGAYDSOBWGY3DKOJWGAYDSOJQGQZTCMBQHEYTSOJTGA3TMOJTHE3CGQBRGA2TAMRSGMYDANZSHE3DMOBWG4ZDONZWHEZTMMZWHA4TSOJXHE4TAMJSGY3TANRUG4YTAMBZG4YDKMRZGI3DEMZZHAYDMMBUHEYTSMKA\",\n    \"card_type\": \"debit\",\n    \"issuer_bank\": \"Shazam, Inc.\",\n    \"client_transaction_id\": \"{{dynamic_client_id}}\",\n    \"token_type\": \"transaction\",\n    \"merchant_id\": \"6000000000172541486137866934\",\n    \"brand\": \"MASTERCARD\",\n    \"amount\": {\n        \"currency\": \"MXN\",\n        \"extra_taxes_info\": {},\n        \"subtotal_iva_0\": 21\n    },\n    \"masked_pan\": \"538405XXXXXX4510\",\n    \"affiliation_code\": \"1234\",\n    \"merchant_information_id\": \"20000000106215354000\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:3030/transaction",
+					"host": [
+						"localhost"
+					],
+					"port": "3030",
+					"path": [
+						"transaction"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "dynamic_transaction_reference",
+			"value": ""
+		},
+		{
+			"key": "dynamic_f7",
+			"value": ""
+		},
+		{
+			"key": "sequential_trx_counter",
+			"value": ""
+		},
+		{
+			"key": "dynamic_f11",
+			"value": ""
+		},
+		{
+			"key": "dynamic_f12",
+			"value": ""
+		},
+		{
+			"key": "dynamic_f37",
+			"value": ""
+		},
+		{
+			"key": "dynamic_client_id",
+			"value": ""
+		},
+		{
+			"key": "dynamic_f13_f17",
+			"value": ""
+		}
+	]
+}
