@@ -370,23 +370,23 @@ docker-compose up -d
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                      Cursor IDE (Client)                     │
-│                    MCP Protocol Client                       │
+│                      Cursor IDE (Client)                    │
+│                    MCP Protocol Client                      │
 └──────────────────────┬──────────────────────────────────────┘
                        │ HTTP (streamable-http)
                        │ http://localhost:8000/mcp
                        ▼
 ┌─────────────────────────────────────────────────────────────┐
-│              Goberbot-Semgrep MCP Server                     │
-│                   (Docker Container)                         │
+│              Goberbot-Semgrep MCP Server                    │
+│                   (Docker Container)                        │
 │  ┌────────────────────────────────────────────────────────┐ │
-│  │  FastMCP 2.13.1 (Native streamable-http transport)    │ │
-│  │  - server.py (MCP tools handler)                      │ │
-│  │  - semgrep_runner.py (Semgrep wrapper)                │ │
+│  │  FastMCP 2.13.1 (Native streamable-http transport)     │ │
+│  │  - server.py (MCP tools handler)                       │ │
+│  │  - semgrep_runner.py (Semgrep wrapper)                 │ │
 │  └────────────────────────────────────────────────────────┘ │
 │  ┌────────────────────────────────────────────────────────┐ │
 │  │  Semgrep CLI 1.144.0                                   │ │
-│  │  (Installed as system binary)                          │ │
+│  │                                                        │ │
 │  └────────────────────────────────────────────────────────┘ │
 │  ┌────────────────────────────────────────────────────────┐ │
 │  │  Custom Rules                                          │ │
