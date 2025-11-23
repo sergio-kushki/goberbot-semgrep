@@ -3,6 +3,7 @@ mcp>=1.0.0
 fastmcp>=2.3.0  # Native streamable-http transport (no FastAPI/Uvicorn needed)
 aiohttp>=3.9.0  # For HTTP client operations (fetching rules from URLs)
 aiofiles>=23.0.0  # For async file operations
+pyyaml>=6.0  # For parsing Semgrep rule YAML files
 
 # Note: Semgrep CLI is installed as a standalone binary in Dockerfile
 # to avoid Python dependency conflicts (rich version incompatibility)
