@@ -13,9 +13,11 @@ services:
       - MCP_PORT=8000
       # Optional: Set this to fetch rules from external URL
       # - CUSTOM_RULES_URL=https://raw.githubusercontent.com/yourorg/rules/main/security.yaml
-    volumes:
+    # volumes:
       # Optional: Mount local rules directory (overrides bundled rules)
-      - ../custom-rules:/app/custom-rules:ro
+      # IMPORTANT: Commenting this out so bundled rules from Docker image are used
+      # Only uncomment for local development if you want to override bundled rules
+      # - ../custom-rules:/app/custom-rules:ro
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "python3 -c 'import socket; s = socket.socket(); s.settimeout(1); s.connect((\"localhost\", 8000)); s.close()' || exit 1"]

@@ -196,7 +196,7 @@ class SemgrepRunner:
         self,
         code: str,
         language: Optional[str] = None,
-        rules_file: Optional[str] = "security.yaml"
+        rules_file: Optional[str] = "all"
     ) -> ScanResult:
         """
         Scan code using Semgrep CLI
