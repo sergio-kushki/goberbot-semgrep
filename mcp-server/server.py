@@ -72,13 +72,23 @@ async def scan_code(
     - "Analyze this file for code quality problems"
     - "Review this code snippet for best practices violations"
     """
-    logger.info(f"Scanning code with rules: {rules_file}")
+    code_size = len(code)
+    lang_info = f"language={language}" if language else "auto-detect"
+    logger.info(f"[SCAN] Starting scan: rules={rules_file}, {lang_info}, code_size={code_size} bytes")
     
     try:
         result: ScanResult = await semgrep.scan(
             code=code,
             language=language,
             rules_file=rules_file
+        )
+        
+        # Log scan results summary
+        summary = result.summary
+        logger.info(
+            f"[SCAN] Completed in {result.scan_time_ms}ms: "
+            f"{summary['total']} findings "
+            f"(ERROR:{summary['ERROR']}, WARNING:{summary['WARNING']}, INFO:{summary['INFO']})"
         )
         
         return {
@@ -89,7 +99,7 @@ async def scan_code(
             "success": True
         }
     except Exception as e:
-        logger.error(f"Scan failed: {str(e)}", exc_info=True)
+        logger.error(f"[SCAN] Failed: {str(e)}", exc_info=True)
         return {
             "error": str(e),
             "success": False
@@ -144,13 +154,14 @@ async def list_available_rules() -> dict:
     - "What CWE categories are covered?"
     - "How many code quality rules are there?"
     """
-    logger.info("Listing available rules")
+    logger.info("[LIST_RULES] Retrieving available Semgrep rules...")
     
     try:
         rules_info = await semgrep.get_rules_info()
         
         # Build summary statistics
         total_rules = sum(file_info.get('rule_count', 0) for file_info in rules_info)
+        total_files = len(rules_info)
         
         # Count by severity and category
         severity_counts = {'ERROR': 0, 'WARNING': 0, 'INFO': 0}
@@ -172,19 +183,24 @@ async def list_available_rules() -> dict:
                 for lang in rule.get('languages', []):
                     languages_set.add(lang)
         
+        logger.info(
+            f"[LIST_RULES] Found {total_rules} rules in {total_files} files: "
+            f"ERROR:{severity_counts['ERROR']}, WARNING:{severity_counts['WARNING']}, INFO:{severity_counts['INFO']}"
+        )
+        
         return {
             "success": True,
             "rules_files": rules_info,
             "summary": {
                 "total_rules": total_rules,
-                "total_files": len(rules_info),
+                "total_files": total_files,
                 "by_severity": severity_counts,
                 "by_category": category_counts,
                 "supported_languages": sorted(list(languages_set))
             }
         }
     except Exception as e:
-        logger.error(f"Failed to list rules: {str(e)}", exc_info=True)
+        logger.error(f"[LIST_RULES] Failed: {str(e)}", exc_info=True)
         return {
             "error": str(e),
             "success": False
@@ -222,17 +238,18 @@ async def reload_rules() -> dict:
     
     Note: This operation typically completes in under 2 seconds for remote URLs, instantly for bundled rules.
     """
-    logger.info("Reloading rules")
+    logger.info("[RELOAD_RULES] Starting rules reload...")
     
     try:
         await semgrep.reload_rules()
+        logger.info(f"[RELOAD_RULES] Successfully reloaded from: {semgrep.rules_source}")
         return {
             "success": True,
             "message": "Rules reloaded successfully",
             "rules_source": semgrep.rules_source
         }
     except Exception as e:
-        logger.error(f"Failed to reload rules: {str(e)}", exc_info=True)
+        logger.error(f"[RELOAD_RULES] Failed: {str(e)}", exc_info=True)
         return {
             "error": str(e),
             "success": False

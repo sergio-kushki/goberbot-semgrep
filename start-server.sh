@@ -2,6 +2,11 @@
 # Goberbot-Semgrep MCP Server - Quick Start Script
 # This script starts the MCP server and verifies it's running correctly
 #
+# Build Strategy:
+#   - FastMCP 2.3+ in main Python environment (for streamable-http support)
+#   - Semgrep isolated in separate venv (/opt/semgrep-venv) to avoid dependency conflicts
+#   - This approach resolves rich & opentelemetry version incompatibilities
+#
 # Usage:
 #   ./start-server.sh          # Normal start (builds if needed)
 #   ./start-server.sh --rebuild # Force rebuild from scratch
@@ -40,6 +45,17 @@ echo ""
 
 # Navigate to mcp-server directory
 cd "$(dirname "$0")/mcp-server"
+
+# Verify Dockerfile has the correct venv isolation setup
+if ! grep -q "/opt/semgrep-venv" Dockerfile; then
+    echo "❌ Error: Dockerfile is missing the venv isolation setup!"
+    echo "   The Dockerfile should create a separate virtual environment for Semgrep."
+    echo "   Please ensure you're using the correct version of the Dockerfile."
+    exit 1
+fi
+
+echo "✅ Dockerfile verified (venv isolation enabled)"
+echo ""
 
 echo "📦 Starting Goberbot-Semgrep MCP Server..."
 echo ""
